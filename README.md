@@ -5,7 +5,7 @@ This is a code along Rest API deployed on Heroku
 Flask using python<br>
 ### Dependencies: 
 Flask-RESTful
-<br>Flask-JWT
+<br>Flask-JWT-extended
 <br>Flask-SQLAlchemy
 
 ### URL:
