@@ -6,7 +6,7 @@ from flask_restful import Api
 from flask_jwt import JWT
 
 from security import authenticate,identity
-from resources.user import UserRegister
+from resources.user import UserRegister , User
 from resources.item import Item , ItemList
 from resources.store import StoreList , Store
 from db import db
@@ -42,6 +42,7 @@ api.add_resource(ItemList, '/items')
 api.add_resource(Store, '/store/<string:name>')
 api.add_resource(StoreList, '/stores')
 api.add_resource(UserRegister, '/register')
+api.add_resource(User , '/user/<int:user_id>')
 
 # running the app
 if __name__ == '__main__': # if in case app.py is imported then this if block won't be run
