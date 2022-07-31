@@ -12,10 +12,11 @@ Flask-RESTful
 ``` https://stores-rest-api-flask-1.herokuapp.com ```
 ### End points:
 ```
-/items
-/item/<name>
-/stores
-/store/<name>
-/register
-/login
+/items - GET
+/item/<name> - GET, POST, DEL, PUT
+/stores - GET
+/store/<name> - GET, POST, DEL
+/register - POST
+/login - POST
+/user/<user_id> - GET, DEL
 ```
