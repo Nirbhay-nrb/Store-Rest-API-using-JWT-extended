@@ -33,6 +33,16 @@ api = Api(app)
 jwt = JWTManager(app) # create the endpoint for authentication in the user resource
 
 
+# claims are extra data we want to add to the payload in addition to the identity
+@jwt.additional_claims_loader
+def add_claims_to_loader(identity): # this parameter should be called identity only
+    # this function is run when a new JWT token is created
+    if identity == 1: # identity 1 means it the first user to be ever created (hard coded) , 
+        # you can also get the admin ID from the database and then check
+        return {'is_admin' : True}
+    return {'is_admin': False}
+
+
 # adding the resource
 api.add_resource(Item, '/item/<string:name>')
 api.add_resource(ItemList, '/items')
