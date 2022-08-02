@@ -1,10 +1,12 @@
 from flask_restful import Resource, reqparse
+from blacklist import BLACKLIST
 from models.user import UserModel
 from flask_jwt_extended import (
     create_access_token, 
     create_refresh_token, 
     jwt_required, 
-    get_jwt_identity
+    get_jwt_identity,
+    get_jwt
 )
 
 _user_parser = reqparse.RequestParser()
@@ -74,6 +76,15 @@ class UserLogin(Resource):
         
         # user doesnt exist or password is wrong
         return {'message' : 'Invalid Credentials'}, 401 # means unauthorized
+
+class UserLogout(Resource):
+    @jwt_required()
+    def post(self):
+        # black list the jwt to logout the user for which we use a unique identifier for each of the access token
+        # this unique identifier is called jti
+        jti = get_jwt()
+        BLACKLIST.append(jti['jti'])
+        return {'message': 'successfully logged out'}
 
 
 # resource for token refreshing

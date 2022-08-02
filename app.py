@@ -5,9 +5,10 @@ from flask import Flask
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 
-from resources.user import UserRegister , User , UserLogin , TokenRefresh
+from resources.user import UserRegister , User , UserLogin , UserLogout , TokenRefresh
 from resources.item import Item , ItemList
 from resources.store import StoreList , Store
+from blacklist import BLACKLIST
 from db import db
 
 # creating app and api
@@ -26,6 +27,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False # turns off the Flask_sqlal
 # however this does not turn off the underlying sqlalchemy tracker
 app.config['PROPAGATE_EXCEPTIONS'] = True 
 # ignores the error given by flask JWT so that you can put your own personalized errors to the user
+
+# removed from latest version of JWT extended
+# app.config['JWT_BLACKLIST_ENABLED'] = True # enables the blacklist
+# app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access' , 'refresh']
+
 app.secret_key = 'jose' # app.config['JWT_SECRET_KEY'] -> same as app.secret_key but for JWT(feature of jwt extended)
 api = Api(app)
 
@@ -42,10 +48,15 @@ def add_claims_to_loader(identity): # this parameter should be called identity o
         return {'is_admin' : True}
     return {'is_admin': False}
 
+# adding blocklist to JWT extended
+@jwt.token_in_blocklist_loader
+def check_if_token_in_blacklist(jwt_header , jwt_payload):
+    return jwt_payload['jti'] in BLACKLIST # if the user is in the black list then the revoked token loaded will be called
+
 
 # configuring JWT_extended
 @jwt.expired_token_loader # when an access token is expired, this sends a message to the user that the token has expired
-def expired_token_callback():
+def expired_token_callback(jwt_header , jwt_payload):
     return  {
         'description' : 'The token has expired',
         'error' : 'token_expired'
@@ -66,7 +77,7 @@ def missing_token_callback(error):
     }, 401
 
 @jwt.needs_fresh_token_loader # when we send a refresh token(i.e. non fresh) on a fresh token endpoint, this function sends a message to the user
-def token_not_fresh_callback():
+def token_not_fresh_callback(jwt_header , jwt_payload):
     return {
         'description' : 'The token is not fresh',
         'error': 'fresh_token_required'
@@ -74,7 +85,7 @@ def token_not_fresh_callback():
 
 @jwt.revoked_token_loader # revoking tokens means that that token is no longer valid
 # after logging out, the access token is added to the revoked tokens list so that the user cannot use that access token again
-def revoked_token_callback():
+def revoked_token_callback(jwt_header , jwt_payload):
     return {
         'description' : 'The token has been revoked',
         'error': 'token_revoked'
@@ -89,6 +100,7 @@ api.add_resource(StoreList, '/stores')
 api.add_resource(UserRegister, '/register')
 api.add_resource(User , '/user/<int:user_id>')
 api.add_resource(UserLogin , '/login')
+api.add_resource(UserLogout , '/logout')
 api.add_resource(TokenRefresh , '/refresh')
 
 # running the app
