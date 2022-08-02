@@ -43,6 +43,44 @@ def add_claims_to_loader(identity): # this parameter should be called identity o
     return {'is_admin': False}
 
 
+# configuring JWT_extended
+@jwt.expired_token_loader # when an access token is expired, this sends a message to the user that the token has expired
+def expired_token_callback():
+    return  {
+        'description' : 'The token has expired',
+        'error' : 'token_expired'
+    } , 401
+
+@jwt.invalid_token_loader # this function is called when the access token sent in headers is not actual JWT
+def invalid_token_callback(error):
+    return {
+        'description' : 'Signature verification failed',
+        'error' : 'invalid_token'
+    } , 401
+
+@jwt.unauthorized_loader # when there is no JWT present at all in the headers
+def missing_token_callback(error):
+    return {
+        'description' : 'Request does not contain an access token',
+        'error': 'authorization_required'
+    }, 401
+
+@jwt.needs_fresh_token_loader # when we send a refresh token(i.e. non fresh) on a fresh token endpoint, this function sends a message to the user
+def token_not_fresh_callback():
+    return {
+        'description' : 'The token is not fresh',
+        'error': 'fresh_token_required'
+    }, 401
+
+@jwt.revoked_token_loader # revoking tokens means that that token is no longer valid
+# after logging out, the access token is added to the revoked tokens list so that the user cannot use that access token again
+def revoked_token_callback():
+    return {
+        'description' : 'The token has been revoked',
+        'error': 'token_revoked'
+    }, 401
+
+
 # adding the resource
 api.add_resource(Item, '/item/<string:name>')
 api.add_resource(ItemList, '/items')
