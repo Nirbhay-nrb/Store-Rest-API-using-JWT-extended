@@ -1,5 +1,6 @@
 from flask_restful import Resource,reqparse
 from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
+import jwt
 from models.item import ItemModel
 
 # resources
@@ -27,6 +28,7 @@ class Item(Resource):
 
 
     # creating an item
+    @jwt_required(fresh=True) # you need a fresh token to use this endpoint
     def post(self,name):
         if ItemModel.find_by_name(name):
             # that means there is already an item with the given name 
